@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SuperMarket SaaS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f3f4f6; min-height: 100vh; }
+        .sidebar {
+            position: fixed; left: 0; top: 0; bottom: 0; width: 260px;
+            background: white; border-right: 1px solid #e5e7eb; padding: 24px 0; z-index: 1000;
+        }
+        .logo { padding: 0 24px 24px; border-bottom: 1px solid #e5e7eb; margin-bottom: 24px; }
+        .logo h1 { font-size: 22px; font-weight: 700; color: #111827; }
+        .nav-menu { list-style: none; }
+        .nav-item { margin: 4px 12px; }
+        .nav-link {
+            display: flex; align-items: center; padding: 12px 16px;
+            color: #4b5563; text-decoration: none; border-radius: 8px;
+            font-size: 14px; font-weight: 500; transition: all 0.2s;
+        }
+        .nav-link:hover { background: #f3f4f6; color: #667eea; }
+        .nav-link.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        .nav-link span { margin-right: 12px; font-size: 18px; }
+        .main-content { margin-left: 260px; padding: 24px; }
+        .header {
+            background: white; padding: 20px 24px; border-radius: 12px;
+            margin-bottom: 24px; display: flex; justify-content: space-between;
+            align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .header h2 { font-size: 24px; color: #111827; }
+        .user-info { display: flex; align-items: center; gap: 12px; }
+        .user-avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 600; font-size: 16px;
+        }
+        .user-details h4 { font-size: 14px; color: #111827; }
+        .user-details p { font-size: 12px; color: #6b7280; }
+        .btn-logout {
+            padding: 8px 16px; background: #fee2e2; color: #991b1b;
+            border-radius: 6px; text-decoration: none; font-size: 13px;
+            font-weight: 500; transition: all 0.2s;
+        }
+        .btn-logout:hover { background: #fecaca; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px; margin-bottom: 24px;
+        }
+        .stat-card {
+            background: white; padding: 24px; border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; overflow: hidden;
+        }
+        .stat-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .stat-icon {
+            width: 48px; height: 48px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; margin-bottom: 16px;
+        }
+        .stat-icon.purple { background: #ede9fe; }
+        .stat-icon.blue { background: #dbeafe; }
+        .stat-icon.green { background: #d1fae5; }
+        .stat-icon.orange { background: #fed7aa; }
+        .stat-label {
+            font-size: 13px; color: #6b7280; font-weight: 500;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .stat-value { font-size: 28px; font-weight: 700; color: #111827; margin-top: 8px; }
+        .quick-actions {
+            background: white; padding: 24px; border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .quick-actions h3 { font-size: 18px; color: #111827; margin-bottom: 20px; }
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .action-btn {
+            display: flex; align-items: center; padding: 16px;
+            background: #f9fafb; border: 2px solid #e5e7eb;
+            border-radius: 10px; text-decoration: none; color: #374151;
+            transition: all 0.2s; font-weight: 500;
+        }
+        .action-btn:hover {
+            border-color: #667eea; background: #f5f3ff; transform: translateY(-2px);
+        }
+        .action-btn span { margin-right: 12px; font-size: 20px; }
+        .alert {
+            padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px;
+        }
+        .alert-success {
+            background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo">
+            <h1>🛒 SuperMarket</h1>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="/admin" class="nav-link active"><span>📊</span> Dashboard</a></li>
+            <li class="nav-item"><a href="/stores" class="nav-link"><span>🏪</span> Stores</a></li>
+            <li class="nav-item"><a href="/users" class="nav-link"><span>👥</span> Users</a></li>
+            <li class="nav-item"><a href="/inventory" class="nav-link"><span>📦</span> Inventory</a></li>
+            <li class="nav-item"><a href="/billing" class="nav-link"><span>💳</span> Billing</a></li>
+            <li class="nav-item"><a href="/reports" class="nav-link"><span>📈</span> Reports</a></li>
+            <li class="nav-item"><a href="/low_stock" class="nav-link"><span>⚠️</span> Low Stock</a></li>
+            <li class="nav-item"><a href="/activity_log" class="nav-link"><span>📋</span> Activity Log</a></li>
+            <li class="nav-item"><a href="/logout" class="nav-link"><span>🚪</span> Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="header">
+            <h2>Dashboard</h2>
+            <div class="user-info">
+                <div class="user-avatar">
+                    {{ session.username[0].upper() if session.username else 'A' }}
+                </div>
+                <div class="user-details">
+                    <h4>{{ session.username if session.username else 'Admin' }}</h4>
+                    <p>{{ session.role.replace('_', ' ').title() if session.role else 'Administrator' }}</p>
+                </div>
+                <a href="/logout" class="btn-logout">Logout</a>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon purple">🏪</div>
+                <div class="stat-label">Total Stores</div>
+                <div class="stat-value">{{ stats.total_stores }}</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon blue">📦</div>
+                <div class="stat-label">Total Products</div>
+                <div class="stat-value">{{ stats.total_products }}</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon green">💰</div>
+                <div class="stat-label">Total Sales</div>
+                <div class="stat-value">₹{{ "%.0f"|format(stats.total_sales) }}</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon orange">🧾</div>
+                <div class="stat-label">Total Bills</div>
+                <div class="stat-value">{{ stats.total_bills }}</div>
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <h3>Quick Actions</h3>
+            <div class="action-grid">
+                <a href="/add_store" class="action-btn"><span>🏪</span> Add Store</a>
+                <a href="/add_user" class="action-btn"><span>👤</span> Add User</a>
+                <a href="/add_product" class="action-btn"><span>➕</span> Add Product</a>
+                <a href="/billing" class="action-btn"><span>💳</span> New Bill</a>
+                <a href="/reports" class="action-btn"><span>📊</span> View Reports</a>
+                <a href="/low_stock" class="action-btn"><span>⚠️</span> Low Stock</a>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

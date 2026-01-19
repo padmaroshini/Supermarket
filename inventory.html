@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory - SuperMarket SaaS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f3f4f6; min-height: 100vh; }
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 260px; background: white; border-right: 1px solid #e5e7eb; padding: 24px 0; }
+        .logo { padding: 0 24px 24px; border-bottom: 1px solid #e5e7eb; margin-bottom: 24px; }
+        .logo h1 { font-size: 22px; color: #111827; font-weight: 700; }
+        .nav-menu { list-style: none; }
+        .nav-item { margin: 4px 12px; }
+        .nav-link { display: flex; align-items: center; padding: 12px 16px; color: #4b5563; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+        .nav-link:hover { background: #f3f4f6; color: #667eea; }
+        .nav-link span { margin-right: 12px; font-size: 18px; }
+        .main-content { margin-left: 260px; padding: 24px; }
+        .header { background: white; padding: 20px 24px; border-radius: 12px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .header h2 { font-size: 24px; color: #111827; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.2s; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
+        .table-container { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #f9fafb; }
+        th { padding: 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
+        td { padding: 16px; border-top: 1px solid #f3f4f6; font-size: 14px; color: #374151; }
+        tr:hover { background: #f9fafb; }
+        .badge { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .actions { display: flex; gap: 8px; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .btn-edit { background: #fef3c7; color: #92400e; }
+        .btn-delete { background: #fee2e2; color: #991b1b; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #6b7280; }
+        .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; }
+        .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo"><h1>🛒 SuperMarket</h1></div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="/dashboard" class="nav-link"><span>📊</span> Dashboard</a></li>
+            <li class="nav-item"><a href="/inventory" class="nav-link active"><span>📦</span> Inventory</a></li>
+            <li class="nav-item"><a href="/billing" class="nav-link"><span>💳</span> Billing</a></li>
+            <li class="nav-item"><a href="/reports" class="nav-link"><span>📈</span> Reports</a></li>
+            <li class="nav-item"><a href="/low_stock" class="nav-link"><span>⚠️</span> Low Stock</a></li>
+            <li class="nav-item"><a href="/logout" class="nav-link"><span>🚪</span> Logout</a></li>
+        </ul>
+    </aside>
+    
+    <main class="main-content">
+        <div class="header">
+            <h2>📦 Inventory Management</h2>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <a href="/add_product" class="btn btn-primary">+ Add Product</a>
+                <a href="/bulk_import" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">📤 Bulk Import</a>
+                <a href="/add_purchase" class="btn btn-primary" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">🛒 Add Purchase</a>
+                <a href="/stock_adjustment" class="btn btn-primary" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">⚠️ Stock Adjustment</a>
+            </div>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+        
+        <div class="table-container">
+            {% if products %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>PRODUCT NAME</th>
+                        {% if session.get('role') == 'company_admin' %}
+                        <th>STORE</th>
+                        {% endif %}
+                        <th>PRICE</th>
+                        <th>GST</th>
+                        <th>STOCK</th>
+                        <th>STATUS</th>
+                        <th>ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>#{{ product['id'] }}</td>
+                        <td><strong>{{ product['name'] }}</strong></td>
+                        {% if session.get('role') == 'company_admin' %}
+                        <td>N/A</td>
+                        {% endif %}
+                        <td>₹{{ "%.2f"|format(product['price']) }}</td>
+                        <td>{{ product['gst'] }}%</td>
+                        <td>{{ product['stock'] }}</td>
+                        <td>
+                            {% if product['stock'] == 0 %}
+                            <span class="badge badge-danger">Out of Stock</span>
+                            {% elif product['stock'] < 10 %}
+                            <span class="badge badge-warning">Low Stock</span>
+                            {% else %}
+                            <span class="badge badge-success">In Stock</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <a href="/edit_product/{{ product['id'] }}" class="btn btn-edit btn-sm">Edit</a>
+                                <a href="/stock_history/{{ product['id'] }}" class="btn btn-edit btn-sm" style="background: #fef3c7; color: #92400e;">📊 History</a>
+                                <a href="/delete_product/{{ product['id'] }}" class="btn btn-delete btn-sm" onclick="return confirm('Delete this product?')">Delete</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <h3>No products found</h3>
+                <p>Start by adding your first product</p>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>

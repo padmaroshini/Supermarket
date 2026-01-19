@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing - SuperMarket SaaS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Load QR libraries -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
+    <script>
+        function updateScanStatus(message, isError = false) {
+            const statusDiv = document.getElementById('scanStatus');
+            if (statusDiv) {
+                statusDiv.textContent = message;
+                statusDiv.style.color = isError ? '#dc2626' : '#6b7280';
+            }
+        }
+
+        function checkLibraries() {
+            const html5Available = typeof Html5Qrcode !== 'undefined';
+
+            alert(`Library Status:
+Html5Qrcode: ${html5Available ? '✅ Loaded' : '❌ Not loaded'}
+
+If library is not loaded, check your internet connection and refresh the page.`);
+        }
+
+        // Check library loading
+        window.addEventListener('load', function() {
+            console.log('Page loaded, checking libraries...');
+            console.log('Html5Qrcode available:', typeof Html5Qrcode !== 'undefined');
+            console.log('QRCode available:', typeof QRCode !== 'undefined');
+
+            setTimeout(function() {
+                if (typeof Html5Qrcode === 'undefined') {
+                    console.error('Html5Qrcode library failed to load');
+                    updateScanStatus('Scanner library failed to load. Please check your internet connection and refresh the page.', true);
+                    document.getElementById('startScanBtn').disabled = true;
+                    document.getElementById('startScanBtn').textContent = 'Scanner Unavailable';
+                } else {
+                    console.log('Html5Qrcode library loaded successfully');
+                    updateScanStatus('Scanner ready - click "Start Camera Scan" to begin');
+                }
+
+                if (typeof QRCode === 'undefined') {
+                    console.warn('QRCode library failed to load - QR generation will not work');
+                } else {
+                    console.log('QRCode library loaded successfully');
+                }
+            }, 1000);
+        });
+    </script>
+    <script>
+        // Check if libraries loaded
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                if (typeof Html5Qrcode === 'undefined') {
+                    console.error('Html5Qrcode library failed to load');
+                    document.getElementById('scanStatus').textContent = 'Scanner library failed to load. Please check your internet connection.';
+                    document.getElementById('scanStatus').style.color = '#dc2626';
+                    document.getElementById('startScanBtn').disabled = true;
+                }
+            }, 2000); // Wait 2 seconds for library to load
+        });
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f3f4f6; min-height: 100vh; }
+        .sidebar {
+            position: fixed; left: 0; top: 0; bottom: 0; width: 260px;
+            background: white; border-right: 1px solid #e5e7eb; padding: 24px 0;
+        }
+        .logo { padding: 0 24px 24px; border-bottom: 1px solid #e5e7eb; margin-bottom: 24px; }
+        .logo h1 { font-size: 22px; color: #111827; font-weight: 700; }
+        .nav-menu { list-style: none; }
+        .nav-item { margin: 4px 12px; }
+        .nav-link {
+            display: flex; align-items: center; padding: 12px 16px;
+            color: #4b5563; text-decoration: none; border-radius: 8px;
+            font-size: 14px; font-weight: 500;
+        }
+        .nav-link:hover { background: #f3f4f6; color: #667eea; }
+        .nav-link span { margin-right: 12px; font-size: 18px; }
+        .main-content { margin-left: 260px; padding: 24px; }
+        .billing-container {
+            display: grid; grid-template-columns: 1fr 400px; gap: 20px;
+        }
+        .card {
+            background: white; border-radius: 12px; padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .card h3 { font-size: 18px; color: #111827; margin-bottom: 20px; }
+        .form-group { margin-bottom: 16px; }
+        label {
+            display: block; margin-bottom: 8px; color: #374151;
+            font-weight: 500; font-size: 14px;
+        }
+        select, input {
+            width: 100%; padding: 10px 12px; border: 2px solid #e5e7eb;
+            border-radius: 8px; font-size: 14px;
+        }
+        input:focus, select:focus {
+            outline: none; border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .btn {
+            padding: 10px 20px; border: none; border-radius: 8px;
+            font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; width: 100%;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn-success {
+            background: #10b981; color: white; width: 100%; margin-top: 16px;
+        }
+        .btn-success:hover { background: #059669; }
+        .btn-success:disabled { background: #d1d5db; cursor: not-allowed; }
+        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        th { padding: 12px; text-align: left; background: #f9fafb; font-size: 12px;
+            color: #6b7280; text-transform: uppercase; font-weight: 600;
+        }
+        td { padding: 12px; border-top: 1px solid #f3f4f6; font-size: 14px; }
+        .summary-item {
+            display: flex; justify-content: space-between; padding: 8px 0;
+            font-size: 14px; color: #4b5563;
+        }
+        .summary-item.total {
+            font-size: 18px; font-weight: 700; color: #111827;
+            border-top: 2px solid #e5e7eb; padding-top: 16px; margin-top: 8px;
+        }
+        .btn-remove {
+            background: #fee2e2; color: #991b1b; padding: 4px 12px;
+            font-size: 12px; border-radius: 6px;
+        }
+        .empty-cart {
+            text-align: center; padding: 40px 20px; color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo">
+            <h1>🛒 SuperMarket</h1>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="/dashboard" class="nav-link"><span>📊</span> Dashboard</a></li>
+            <li class="nav-item"><a href="/billing" class="nav-link active"><span>💳</span> Billing</a></li>
+            <li class="nav-item"><a href="/inventory" class="nav-link"><span>📦</span> Inventory</a></li>
+            <li class="nav-item"><a href="/add_product" class="nav-link"><span>➕</span> Add Product</a></li>
+            <li class="nav-item"><a href="/low_stock" class="nav-link"><span>⚠️</span> Low Stock</a></li>
+            <li class="nav-item"><a href="/reports" class="nav-link"><span>📈</span> Reports</a></li>
+            <li class="nav-item"><a href="/stores" class="nav-link"><span>🏪</span> Stores</a></li>
+            <li class="nav-item"><a href="/logout" class="nav-link"><span>🚪</span> Logout</a></li>
+        </ul>
+    </aside>
+    
+    <main class="main-content">
+        <div class="billing-container">
+            <div class="card">
+                <h3>� Product Scanner (Demo)</h3>
+                <p style="font-size: 12px; color: #6b7280; margin-bottom: 16px;">
+                    💡 For demonstration purposes, we use system-defined product codes scanned via laptop camera.
+                    This can be easily extended to real barcode scanners in production.
+                </p>
+                <!-- Camera Scanner -->
+                <div class="form-group">
+                    <label>Camera Scanner</label>
+                    <div id="qr-reader" style="width: 100%; max-width: 300px; margin: 0 auto; border: 2px dashed #e5e7eb; border-radius: 8px; min-height: 200px; display: flex; align-items: center; justify-content: center; background: #f9fafb;">
+                        <div style="text-align: center; color: #6b7280;">
+                            <div style="font-size: 24px; margin-bottom: 8px;">📷</div>
+                            <div>Camera will appear here</div>
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 10px;">
+                        <button type="button" class="btn btn-primary" onclick="startScanner()" id="startScanBtn">Start Camera Scan</button>
+                        <button type="button" class="btn btn-secondary" onclick="stopScanner()" id="stopScanBtn" style="display: none;">Stop Scanning</button>
+                    </div>
+                    <div id="scanStatus" style="text-align: center; margin-top: 8px; font-size: 12px; color: #6b7280;"></div>
+                    <div style="text-align: center; margin-top: 8px;">
+                        <button type="button" class="btn btn-secondary" onclick="checkLibraries()" style="padding: 4px 8px; font-size: 11px;">Check Libraries</button>
+                    </div>
+                </div>
+                
+                <!-- Manual Entry -->
+                <div class="form-group">
+                    <label>Product Code (Manual Entry)</label>
+                    <input type="text" id="productCodeInput" placeholder="e.g., RICE100, SUG123" style="text-transform: uppercase;">
+                </div>
+                
+                <button type="button" class="btn btn-primary" onclick="fetchProductByCode()">Fetch Product</button>
+                
+                <!-- Error Display -->
+                <div id="scanError" style="margin-top: 8px; padding: 8px; background: #fee2e2; border: 1px solid #fca5a5; border-radius: 6px; color: #dc2626; font-size: 12px; display: none;"></div>
+                
+                <!-- Product Details Display -->
+                <div id="productDetails" style="margin-top: 16px; padding: 12px; background: #f9fafb; border-radius: 8px; display: none;">
+                    <h4 style="margin-bottom: 8px; color: #111827;">📦 Product Details</h4>
+                    <div id="productInfo"></div>
+                    <div class="form-group" style="margin-top: 12px;">
+                        <label>Quantity</label>
+                        <input type="number" id="scanQuantityInput" min="1" value="1">
+                    </div>
+                    <button type="button" class="btn btn-success" onclick="addScannedToCart()">Add to Cart</button>
+                </div>
+                
+                <hr style="margin: 24px 0; border: none; border-top: 1px solid #e5e7eb;">
+                <h3>🛒 Or Select from List</h3>
+                
+                <div class="form-group">
+                    <label>Select Product</label>
+                    <select id="productSelect">
+                        <option value="">-- Select Product --</option>
+                        {% for p in products %}
+                        <option value="{{ p['id'] }}" 
+                                data-name="{{ p['name'] }}" 
+                                data-price="{{ p['price'] }}" 
+                                data-gst="{{ p['gst'] }}" 
+                                data-stock="{{ p['stock'] }}"
+                                {% if p['stock'] == 0 %}disabled{% endif %}>
+                            {{ p['name'] }} - ₹{{ "%.2f"|format(p['price']) }} (Stock: {{ p['stock'] }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <input type="number" id="quantityInput" min="1" value="1">
+                </div>
+                
+                <button type="button" class="btn btn-primary" onclick="addToCart()">Add to Cart</button>
+                
+                <h3 style="margin-top: 32px;">🛒 Cart Items</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Qty</th>
+                            <th>Total</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cartBody">
+                        <tr><td colspan="5" class="empty-cart">Cart is empty</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card">
+                <h3>📝 Bill Summary</h3>
+                
+                <div class="summary-item">
+                    <span>Subtotal:</span>
+                    <span>₹<span id="subtotal">0.00</span></span>
+                </div>
+                <div class="summary-item">
+                    <span>GST:</span>
+                    <span>₹<span id="gstTotal">0.00</span></span>
+                </div>
+                
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>Discount (₹)</label>
+                    <input type="number" id="discount" value="0" step="0.01" min="0" onchange="updateTotal()">
+                </div>
+                
+                <div class="summary-item total">
+                    <span>Total:</span>
+                    <span>₹<span id="grandTotal">0.00</span></span>
+                </div>
+                
+                <div class="form-group" style="margin-top: 24px;">
+                    <label>Payment Mode</label>
+                    <select id="paymentMode">
+                        <option value="Cash">Cash</option>
+                        <option value="UPI">UPI</option>
+                        <option value="Card">Card</option>
+                    </select>
+                </div>
+                
+                <button type="button" class="btn btn-success" onclick="checkout()" id="checkoutBtn" disabled>
+                    Complete Checkout
+                </button>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        let cart = [];
+
+        function addToCart() {
+            const select = document.getElementById('productSelect');
+            const qty = parseInt(document.getElementById('quantityInput').value);
+            
+            if (!select.value) { alert('Please select a product'); return; }
+            if (qty < 1) { alert('Quantity must be at least 1'); return; }
+
+            const option = select.options[select.selectedIndex];
+            const productId = select.value;
+            const name = option.dataset.name;
+            const price = parseFloat(option.dataset.price);
+            const gst = parseFloat(option.dataset.gst);
+            const stock = parseInt(option.dataset.stock);
+
+            const existing = cart.find(item => item.id === productId);
+            if (existing) {
+                if (existing.qty + qty <= stock) existing.qty += qty;
+                else { alert('Not enough stock!'); return; }
+            } else {
+                if (qty > stock) { alert('Not enough stock!'); return; }
+                cart.push({ id: productId, name, price, gst, qty, stock });
+            }
+
+            updateCart();
+            select.value = '';
+            document.getElementById('quantityInput').value = 1;
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCart();
+        }
+
+        function updateCart() {
+            const tbody = document.getElementById('cartBody');
+            if (cart.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-cart">Cart is empty</td></tr>';
+                document.getElementById('checkoutBtn').disabled = true;
+            } else {
+                tbody.innerHTML = cart.map((item, index) => {
+                    const itemSubtotal = item.price * item.qty;
+                    const itemGst = itemSubtotal * (item.gst / 100);
+                    const itemTotal = itemSubtotal + itemGst;
+                    return `
+                        <tr>
+                            <td><strong>${item.name}</strong></td>
+                            <td>₹${item.price.toFixed(2)}</td>
+                            <td>${item.qty}</td>
+                            <td>₹${itemTotal.toFixed(2)}</td>
+                            <td><button class="btn-remove" onclick="removeFromCart(${index})">Remove</button></td>
+                        </tr>
+                    `;
+                }).join('');
+                document.getElementById('checkoutBtn').disabled = false;
+            }
+            updateTotal();
+        }
+
+        function updateTotal() {
+            let subtotal = 0, gstTotal = 0;
+            cart.forEach(item => {
+                const itemSubtotal = item.price * item.qty;
+                const itemGst = itemSubtotal * (item.gst / 100);
+                subtotal += itemSubtotal;
+                gstTotal += itemGst;
+            });
+            const discount = parseFloat(document.getElementById('discount').value) || 0;
+            const grandTotal = subtotal + gstTotal - discount;
+            document.getElementById('subtotal').textContent = subtotal.toFixed(2);
+            document.getElementById('gstTotal').textContent = gstTotal.toFixed(2);
+            document.getElementById('grandTotal').textContent = grandTotal.toFixed(2);
+        }
+
+        function checkout() {
+            if (cart.length === 0) { alert('Cart is empty!'); return; }
+            const discount = parseFloat(document.getElementById('discount').value) || 0;
+            const paymentMode = document.getElementById('paymentMode').value;
+
+            fetch('/process_checkout', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ cart, discount, payment_mode: paymentMode })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Bill created!\nBill Number: ' + data.bill_number + '\nTotal: ₹' + data.total);
+                    cart = [];
+                    updateCart();
+                    document.getElementById('discount').value = 0;
+                    document.getElementById('productSelect').value = '';
+                    document.getElementById('quantityInput').value = 1;
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            });
+        }
+
+        // Product Scanning Functions
+        let html5QrCode = null;
+        let isScanning = false;
+
+        function startScanner() {
+            if (isScanning) return;
+
+            // Check if library is loaded
+            if (typeof Html5Qrcode === 'undefined') {
+                updateScanStatus('Scanner library not loaded. Please refresh the page and check your internet connection.', true);
+                alert('The QR scanner library failed to load. Please:\n1. Check your internet connection\n2. Refresh the page\n3. Try a different browser');
+                return;
+            }
+
+            updateScanStatus('Initializing camera...');
+
+            // Check if camera is supported
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                updateScanStatus('Camera not supported in this browser', true);
+                alert('Camera is not supported in this browser. Please use a modern browser like Chrome, Firefox, or Edge.');
+                return;
+            }
+
+            // Check if we're on HTTPS or localhost
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+                updateScanStatus('Camera requires HTTPS or localhost', true);
+                alert('Camera access requires HTTPS or localhost. For demo purposes, please access this page via https:// or localhost.');
+                return;
+            }
+
+            try {
+                if (!html5QrCode) {
+                    html5QrCode = new Html5Qrcode("qr-reader");
+                }
+
+                const config = {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0
+                };
+
+                html5QrCode.start(
+                    { facingMode: "environment" }, // Try back camera first
+                    config,
+                    (decodedText, decodedResult) => {
+                        // Success callback
+                        updateScanStatus('QR Code detected!');
+                        console.log('QR Code detected:', decodedText);
+
+                        // Stop scanning
+                        stopScanner();
+
+                        // Populate the input field with scanned code
+                        document.getElementById('productCodeInput').value = decodedText.toUpperCase();
+
+                        // Auto-fetch the product
+                        setTimeout(() => fetchProductByCode(), 500);
+                    },
+                    (errorMessage) => {
+                        // Error callback - ignore most errors as they're normal during scanning
+                        console.log('Scan error:', errorMessage);
+                    }
+                ).then(() => {
+                    isScanning = true;
+                    document.getElementById('startScanBtn').style.display = 'none';
+                    document.getElementById('stopScanBtn').style.display = 'inline-block';
+                    updateScanStatus('Camera active - point at QR code');
+                }).catch((err) => {
+                    console.error('Failed to start scanner:', err);
+                    updateScanStatus('Failed to access camera: ' + err.message, true);
+
+                    // Try with front camera as fallback
+                    if (err.message.includes('environment')) {
+                        updateScanStatus('Trying front camera...');
+                        html5QrCode.start(
+                            { facingMode: "user" }, // Try front camera
+                            config,
+                            (decodedText, decodedResult) => {
+                                updateScanStatus('QR Code detected!');
+                                stopScanner();
+                                document.getElementById('productCodeInput').value = decodedText.toUpperCase();
+                                setTimeout(() => fetchProductByCode(), 500);
+                            },
+                            (errorMessage) => {
+                                console.log('Scan error:', errorMessage);
+                            }
+                        ).then(() => {
+                            isScanning = true;
+                            document.getElementById('startScanBtn').style.display = 'none';
+                            document.getElementById('stopScanBtn').style.display = 'inline-block';
+                            updateScanStatus('Front camera active - point at QR code');
+                        }).catch((frontErr) => {
+                            updateScanStatus('Camera access failed. Please check permissions.', true);
+                            alert('Camera access failed. Please:\n1. Allow camera permissions\n2. Make sure no other app is using the camera\n3. Try refreshing the page');
+                        });
+                    }
+                });
+            } catch (err) {
+                updateScanStatus('Error initializing scanner: ' + err.message, true);
+                alert('Error initializing scanner: ' + err.message);
+            }
+        }
+
+        function stopScanner() {
+            if (html5QrCode && isScanning) {
+                html5QrCode.stop().then(() => {
+                    isScanning = false;
+                    document.getElementById('startScanBtn').style.display = 'inline-block';
+                    document.getElementById('stopScanBtn').style.display = 'none';
+                    updateScanStatus('Camera stopped');
+                }).catch((err) => {
+                    console.error('Error stopping scanner:', err);
+                    updateScanStatus('Error stopping camera', true);
+                });
+            }
+        }
+
+        function generateQR() {
+            alert('QR code generation is currently disabled.\n\nFor your demo, you can:\n1. Use online QR generators like qr-code-generator.com\n2. Or manually type the product codes\n\nSample codes: RICE100, MILK500, SUGAR100, OIL100, BREAD001, EGGS012');
+        }
+
+        function fetchProductByCode() {
+            const productCode = document.getElementById('productCodeInput').value.trim().toUpperCase();
+            if (!productCode) {
+                showScanError('Please enter a product code');
+                return;
+            }
+
+            fetch('/get_product_by_code', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ product_code: productCode })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    showScanError(data.error);
+                    hideProductDetails();
+                } else {
+                    showProductDetails(data);
+                    hideScanError();
+                }
+            })
+            .catch(err => {
+                showScanError('Error fetching product: ' + err);
+                hideProductDetails();
+            });
+        }
+
+        function showProductDetails(product) {
+            const detailsDiv = document.getElementById('productDetails');
+            const infoDiv = document.getElementById('productInfo');
+            
+            infoDiv.innerHTML = `
+                <p><strong>Name:</strong> ${product.name}</p>
+                <p><strong>Price:</strong> ₹${parseFloat(product.price).toFixed(2)}</p>
+                <p><strong>GST:</strong> ${product.gst}%</p>
+                <p><strong>Available Stock:</strong> ${product.stock}</p>
+            `;
+            
+            // Store product data for adding to cart
+            detailsDiv.dataset.productId = product.id;
+            detailsDiv.dataset.productName = product.name;
+            detailsDiv.dataset.productPrice = product.price;
+            detailsDiv.dataset.productGst = product.gst;
+            
+            detailsDiv.style.display = 'block';
+        }
+
+        function hideProductDetails() {
+            document.getElementById('productDetails').style.display = 'none';
+        }
+
+        function showScanError(message) {
+            const errorDiv = document.getElementById('scanError');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideScanError() {
+            document.getElementById('scanError').style.display = 'none';
+        }
+
+        function addScannedToCart() {
+            const detailsDiv = document.getElementById('productDetails');
+            const qty = parseInt(document.getElementById('scanQuantityInput').value);
+            
+            if (!detailsDiv.dataset.productId) {
+                alert('No product selected');
+                return;
+            }
+            
+            if (qty < 1) {
+                alert('Quantity must be at least 1');
+                return;
+            }
+
+            const productId = parseInt(detailsDiv.dataset.productId);
+            const name = detailsDiv.dataset.productName;
+            const price = parseFloat(detailsDiv.dataset.productPrice);
+            const gst = parseFloat(detailsDiv.dataset.productGst);
+
+            // Check if product already in cart
+            const existingIndex = cart.findIndex(item => item.id === productId);
+            if (existingIndex >= 0) {
+                cart[existingIndex].qty += qty;
+            } else {
+                cart.push({ id: productId, name, price, gst, qty });
+            }
+
+            updateCart();
+            
+            // Clear the scanned product
+            document.getElementById('productCodeInput').value = '';
+            document.getElementById('scanQuantityInput').value = 1;
+            hideProductDetails();
+            hideScanError();
+            
+            alert('Product added to cart!');
+        }
+    </script>
+</body>
+</html>

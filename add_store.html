@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Store - SuperMarket SaaS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f3f4f6; min-height: 100vh; }
+        .sidebar {
+            position: fixed; left: 0; top: 0; bottom: 0; width: 260px;
+            background: white; border-right: 1px solid #e5e7eb; padding: 24px 0;
+        }
+        .logo { padding: 0 24px 24px; border-bottom: 1px solid #e5e7eb; margin-bottom: 24px; }
+        .logo h1 { font-size: 22px; color: #111827; font-weight: 700; }
+        .nav-menu { list-style: none; }
+        .nav-item { margin: 4px 12px; }
+        .nav-link {
+            display: flex; align-items: center; padding: 12px 16px;
+            color: #4b5563; text-decoration: none; border-radius: 8px;
+            font-size: 14px; font-weight: 500;
+        }
+        .nav-link:hover { background: #f3f4f6; color: #667eea; }
+        .nav-link span { margin-right: 12px; font-size: 18px; }
+        .main-content { margin-left: 260px; padding: 24px; }
+        .form-container {
+            max-width: 600px; background: white; border-radius: 12px;
+            padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .form-header { margin-bottom: 24px; }
+        .form-header h2 { font-size: 24px; color: #111827; margin-bottom: 8px; }
+        .form-header p { font-size: 14px; color: #6b7280; }
+        .form-group { margin-bottom: 20px; }
+        label {
+            display: block; margin-bottom: 8px; color: #374151;
+            font-weight: 500; font-size: 14px;
+        }
+        input {
+            width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb;
+            border-radius: 8px; font-size: 14px; transition: all 0.2s;
+        }
+        input:focus {
+            outline: none; border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .btn {
+            padding: 12px 24px; border: none; border-radius: 8px;
+            font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; width: 100%;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #f3f4f6; color: #374151; margin-top: 12px;
+            width: 100%; text-decoration: none; display: block; text-align: center;
+        }
+        .alert {
+            padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px;
+        }
+        .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo"><h1>🛒 SuperMarket</h1></div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="/dashboard" class="nav-link"><span>📊</span> Dashboard</a></li>
+            <li class="nav-item"><a href="/stores" class="nav-link"><span>🏪</span> Stores</a></li>
+            <li class="nav-item"><a href="/users" class="nav-link"><span>👥</span> Users</a></li>
+            <li class="nav-item"><a href="/logout" class="nav-link"><span>🚪</span> Logout</a></li>
+        </ul>
+    </aside>
+    
+    <main class="main-content">
+        <div class="form-container">
+            <div class="form-header">
+                <h2>🏪 Add New Store</h2>
+                <p>Create a new store location</p>
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+            
+            <form method="POST">
+                <div class="form-group">
+                    <label for="store_name">Store Name *</label>
+                    <input type="text" id="store_name" name="store_name" required 
+                           placeholder="e.g., Main Branch">
+                </div>
+                
+                <div class="form-group">
+                    <label for="location">Location *</label>
+                    <input type="text" id="location" name="location" required 
+                           placeholder="e.g., 123 Main St, City">
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="text" id="phone" name="phone" 
+                           placeholder="e.g., +91 98765 43210">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Add Store</button>
+                <a href="/stores" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </main>
+</body>
+</html>
+

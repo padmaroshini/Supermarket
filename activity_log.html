@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Log - SuperMarket SaaS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f3f4f6; min-height: 100vh; }
+        .sidebar {
+            position: fixed; left: 0; top: 0; bottom: 0; width: 260px;
+            background: white; border-right: 1px solid #e5e7eb; padding: 24px 0;
+        }
+        .logo { padding: 0 24px 24px; border-bottom: 1px solid #e5e7eb; margin-bottom: 24px; }
+        .logo h1 { font-size: 22px; color: #111827; font-weight: 700; }
+        .nav-menu { list-style: none; }
+        .nav-item { margin: 4px 12px; }
+        .nav-link {
+            display: flex; align-items: center; padding: 12px 16px;
+            color: #4b5563; text-decoration: none; border-radius: 8px;
+            font-size: 14px; font-weight: 500;
+        }
+        .nav-link:hover { background: #f3f4f6; color: #667eea; }
+        .nav-link span { margin-right: 12px; font-size: 18px; }
+        .main-content { margin-left: 260px; padding: 24px; }
+        .header {
+            background: white; padding: 20px 24px; border-radius: 12px;
+            margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .header h2 { font-size: 24px; color: #111827; margin-bottom: 8px; }
+        .header p { font-size: 14px; color: #6b7280; }
+        .table-container {
+            background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #f9fafb; }
+        th {
+            padding: 16px; text-align: left; font-size: 12px; font-weight: 600;
+            color: #6b7280; text-transform: uppercase;
+        }
+        td { padding: 16px; border-top: 1px solid #f3f4f6; font-size: 14px; color: #374151; }
+        tr:hover { background: #f9fafb; }
+        .action-badge {
+            padding: 4px 10px; border-radius: 6px; font-size: 11px;
+            font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .action-login { background: #dbeafe; color: #1e40af; }
+        .action-logout { background: #fee2e2; color: #991b1b; }
+        .action-add { background: #d1fae5; color: #065f46; }
+        .action-update { background: #fef3c7; color: #92400e; }
+        .action-delete { background: #fecaca; color: #b91c1c; }
+        .action-default { background: #f3f4f6; color: #4b5563; }
+        .timestamp { color: #6b7280; font-size: 13px; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #6b7280; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo"><h1>🛒 SuperMarket</h1></div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="/dashboard" class="nav-link"><span>📊</span> Dashboard</a></li>
+            <li class="nav-item"><a href="/stores" class="nav-link"><span>🏪</span> Stores</a></li>
+            <li class="nav-item"><a href="/users" class="nav-link"><span>👥</span> Users</a></li>
+            <li class="nav-item"><a href="/activity_log" class="nav-link"><span>📋</span> Activity Log</a></li>
+            <li class="nav-item"><a href="/logout" class="nav-link"><span>🚪</span> Logout</a></li>
+        </ul>
+    </aside>
+    
+    <main class="main-content">
+        <div class="header">
+            <h2>📋 Activity Log</h2>
+            <p>Recent system activities and user actions (Last 100 entries)</p>
+        </div>
+        
+        <div class="table-container">
+            {% if logs %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Details</th>
+                        <th>Store</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td class="timestamp">{{ log.timestamp }}</td>
+                        <td>
+                            <strong>{{ log.username }}</strong>
+                        </td>
+                        <td>
+                            {% set action_lower = log.action.lower() %}
+                            {% if 'login' in action_lower %}
+                            <span class="action-badge action-login">{{ log.action }}</span>
+                            {% elif 'logout' in action_lower %}
+                            <span class="action-badge action-logout">{{ log.action }}</span>
+                            {% elif 'add' in action_lower or 'create' in action_lower %}
+                            <span class="action-badge action-add">{{ log.action }}</span>
+                            {% elif 'update' in action_lower or 'edit' in action_lower %}
+                            <span class="action-badge action-update">{{ log.action }}</span>
+                            {% elif 'delete' in action_lower %}
+                            <span class="action-badge action-delete">{{ log.action }}</span>
+                            {% else %}
+                            <span class="action-badge action-default">{{ log.action }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ log.details if log.details else '-' }}</td>
+                        <td>{{ log.store_name if log.store_name else 'All Stores' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <h3>No activity logs found</h3>
+                <p>Activity will appear here once users start performing actions</p>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>

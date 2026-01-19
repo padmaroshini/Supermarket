@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Product - SuperMarket SaaS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f3f4f6; min-height: 100vh; }
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 260px; background: white; border-right: 1px solid #e5e7eb; padding: 24px 0; }
+        .logo { padding: 0 24px 24px; border-bottom: 1px solid #e5e7eb; margin-bottom: 24px; }
+        .logo h1 { font-size: 22px; color: #111827; font-weight: 700; }
+        .nav-menu { list-style: none; }
+        .nav-item { margin: 4px 12px; }
+        .nav-link { display: flex; align-items: center; padding: 12px 16px; color: #4b5563; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 500; }
+        .nav-link:hover { background: #f3f4f6; color: #667eea; }
+        .nav-link span { margin-right: 12px; font-size: 18px; }
+        .main-content { margin-left: 260px; padding: 24px; }
+        .form-container { max-width: 600px; background: white; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .form-header { margin-bottom: 24px; }
+        .form-header h2 { font-size: 24px; color: #111827; margin-bottom: 8px; }
+        .form-header p { font-size: 14px; color: #6b7280; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #374151; font-weight: 500; font-size: 14px; }
+        input { width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; transition: all 0.2s; }
+        input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        .btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; width: 100%; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
+        .btn-secondary { background: #f3f4f6; color: #374151; margin-top: 12px; width: 100%; text-decoration: none; display: block; text-align: center; }
+        .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; }
+        .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo"><h1>🛒 SuperMarket</h1></div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="/dashboard" class="nav-link"><span>📊</span> Dashboard</a></li>
+            <li class="nav-item"><a href="/inventory" class="nav-link"><span>📦</span> Inventory</a></li>
+            <li class="nav-item"><a href="/billing" class="nav-link"><span>💳</span> Billing</a></li>
+            <li class="nav-item"><a href="/reports" class="nav-link"><span>📈</span> Reports</a></li>
+            <li class="nav-item"><a href="/logout" class="nav-link"><span>🚪</span> Logout</a></li>
+        </ul>
+    </aside>
+    
+    <main class="main-content">
+        <div class="form-container">
+            <div class="form-header">
+                <h2>✏️ Edit Product</h2>
+                <p>Update product details</p>
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+            
+            <form method="POST">
+                {% if session.get('role') == 'company_admin' and stores %}
+                <div class="form-group">
+                    <label for="store_id">Store *</label>
+                    <select id="store_id" name="store_id" required>
+                        <option value="">-- Select Store --</option>
+                        {% for store in stores %}
+                        <option value="{{ store['id'] }}">{{ store['store_name'] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="name">Product Name *</label>
+                    <input type="text" id="name" name="name" value="{{ product['name'] }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="price">Price (₹) *</label>
+                    <input type="number" id="price" name="price" step="0.01" value="{{ product['price'] }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="gst">GST (%) *</label>
+                    <input type="number" id="gst" name="gst" step="0.01" value="{{ product['gst'] }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="stock">Stock Quantity *</label>
+                    <input type="number" id="stock" name="stock" value="{{ product[4] }}" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Update Product</button>
+                <a href="/inventory" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

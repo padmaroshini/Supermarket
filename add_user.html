@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add User - SuperMarket SaaS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f3f4f6; min-height: 100vh; }
+        .sidebar {
+            position: fixed; left: 0; top: 0; bottom: 0; width: 260px;
+            background: white; border-right: 1px solid #e5e7eb; padding: 24px 0;
+        }
+        .logo { padding: 0 24px 24px; border-bottom: 1px solid #e5e7eb; margin-bottom: 24px; }
+        .logo h1 { font-size: 22px; color: #111827; font-weight: 700; }
+        .nav-menu { list-style: none; }
+        .nav-item { margin: 4px 12px; }
+        .nav-link {
+            display: flex; align-items: center; padding: 12px 16px;
+            color: #4b5563; text-decoration: none; border-radius: 8px;
+            font-size: 14px; font-weight: 500;
+        }
+        .nav-link:hover { background: #f3f4f6; color: #667eea; }
+        .nav-link span { margin-right: 12px; font-size: 18px; }
+        .main-content { margin-left: 260px; padding: 24px; }
+        .form-container {
+            max-width: 600px; background: white; border-radius: 12px;
+            padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .form-header { margin-bottom: 24px; }
+        .form-header h2 { font-size: 24px; color: #111827; margin-bottom: 8px; }
+        .form-header p { font-size: 14px; color: #6b7280; }
+        .form-group { margin-bottom: 20px; }
+        label {
+            display: block; margin-bottom: 8px; color: #374151;
+            font-weight: 500; font-size: 14px;
+        }
+        input, select {
+            width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb;
+            border-radius: 8px; font-size: 14px; transition: all 0.2s;
+        }
+        input:focus, select:focus {
+            outline: none; border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .btn {
+            padding: 12px 24px; border: none; border-radius: 8px;
+            font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; width: 100%;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #f3f4f6; color: #374151; margin-top: 12px;
+            width: 100%; text-decoration: none; display: block; text-align: center;
+        }
+        .alert {
+            padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px;
+        }
+        .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .info-box {
+            background: #dbeafe; padding: 12px; border-radius: 8px;
+            font-size: 13px; color: #1e40af; margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo"><h1>🛒 SuperMarket</h1></div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="/dashboard" class="nav-link"><span>📊</span> Dashboard</a></li>
+            <li class="nav-item"><a href="/stores" class="nav-link"><span>🏪</span> Stores</a></li>
+            <li class="nav-item"><a href="/users" class="nav-link"><span>👥</span> Users</a></li>
+            <li class="nav-item"><a href="/logout" class="nav-link"><span>🚪</span> Logout</a></li>
+        </ul>
+    </aside>
+    
+    <main class="main-content">
+        <div class="form-container">
+            <div class="form-header">
+                <h2>👤 Add New User</h2>
+                <p>Create a new user account</p>
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+            
+            <div class="info-box">
+                💡 <strong>Tip:</strong> Company admins have access to all stores. Store admins and users are assigned to specific stores.
+            </div>
+            
+            <form method="POST">
+                <div class="form-group">
+                    <label for="username">Username *</label>
+                    <input type="text" id="username" name="username" required 
+                           placeholder="e.g., john.doe">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password *</label>
+                    <input type="password" id="password" name="password" required 
+                           placeholder="Enter strong password">
+                </div>
+                
+                <div class="form-group">
+                    <label for="full_name">Full Name</label>
+                    <input type="text" id="full_name" name="full_name" 
+                           placeholder="e.g., John Doe">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" 
+                           placeholder="e.g., john@example.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="role">Role *</label>
+                    <select id="role" name="role" required onchange="toggleStoreField()">
+                        <option value="">-- Select Role --</option>
+                        <option value="company_admin">Company Admin</option>
+                        <option value="store_admin">Store Admin</option>
+                        <option value="store_user">Store User</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="storeField" style="display: none;">
+                    <label for="store_id">Assign to Store *</label>
+                    <select id="store_id" name="store_id">
+                        <option value="">-- Select Store --</option>
+                        {% for store in stores %}
+                        <option value="{{ store[0] }}">{{ store[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Create User</button>
+                <a href="/users" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </main>
+    
+    <script>
+        function toggleStoreField() {
+            const role = document.getElementById('role').value;
+            const storeField = document.getElementById('storeField');
+            const storeSelect = document.getElementById('store_id');
+            
+            if (role === 'company_admin') {
+                storeField.style.display = 'none';
+                storeSelect.removeAttribute('required');
+            } else if (role === 'store_admin' || role === 'store_user') {
+                storeField.style.display = 'block';
+                storeSelect.setAttribute('required', 'required');
+            } else {
+                storeField.style.display = 'none';
+                storeSelect.removeAttribute('required');
+            }
+        }
+    </script>
+</body>
+</html>

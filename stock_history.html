@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock History - SuperMarket SaaS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f3f4f6; min-height: 100vh; }
+        .sidebar {
+            position: fixed; left: 0; top: 0; bottom: 0; width: 260px;
+            background: white; border-right: 1px solid #e5e7eb; padding: 24px 0;
+        }
+        .logo { padding: 0 24px 24px; border-bottom: 1px solid #e5e7eb; margin-bottom: 24px; }
+        .logo h1 { font-size: 22px; color: #111827; font-weight: 700; }
+        .nav-menu { list-style: none; }
+        .nav-item { margin: 4px 12px; }
+        .nav-link {
+            display: flex; align-items: center; padding: 12px 16px;
+            color: #4b5563; text-decoration: none; border-radius: 8px;
+            font-size: 14px; font-weight: 500;
+        }
+        .nav-link:hover { background: #f3f4f6; color: #667eea; }
+        .nav-link.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .nav-link span { margin-right: 12px; font-size: 18px; }
+        .main-content { margin-left: 260px; padding: 24px; }
+        .header {
+            background: white; padding: 20px 24px; border-radius: 12px;
+            margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .header h2 { font-size: 24px; color: #111827; }
+        .product-info {
+            background: white; padding: 20px 24px; border-radius: 12px;
+            margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .product-name { font-size: 18px; font-weight: 600; color: #111827; margin-bottom: 8px; }
+        .product-details { display: flex; gap: 24px; font-size: 14px; color: #6b7280; }
+        .table-container {
+            background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #f9fafb; }
+        th {
+            padding: 16px; text-align: left; font-size: 12px; font-weight: 600;
+            color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        td { padding: 16px; border-top: 1px solid #f3f4f6; font-size: 14px; color: #374151; }
+        tr:hover { background: #f9fafb; }
+        .movement-type {
+            padding: 4px 10px; border-radius: 6px; font-size: 11px;
+            font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .type-purchase { background: #d1fae5; color: #065f46; }
+        .type-sale { background: #fee2e2; color: #991b1b; }
+        .type-damage { background: #fef3c7; color: #92400e; }
+        .type-expired { background: #fee2e2; color: #b91c1c; }
+        .quantity-positive { color: #065f46; font-weight: 600; }
+        .quantity-negative { color: #991b1b; font-weight: 600; }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 6px;
+            font-size: 13px; font-weight: 500; cursor: pointer;
+            text-decoration: none; display: inline-block; transition: all 0.2s;
+        }
+        .btn-secondary { background: #f3f4f6; color: #374151; }
+        .btn-secondary:hover { background: #e5e7eb; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #6b7280; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo"><h1>🛒 SuperMarket</h1></div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="/admin" class="nav-link"><span>📊</span> Dashboard</a></li>
+            <li class="nav-item"><a href="/inventory" class="nav-link active"><span>📦</span> Inventory</a></li>
+            <li class="nav-item"><a href="/billing" class="nav-link"><span>💳</span> Billing</a></li>
+            <li class="nav-item"><a href="/reports" class="nav-link"><span>📈</span> Reports</a></li>
+            <li class="nav-item"><a href="/low_stock" class="nav-link"><span>⚠️</span> Low Stock</a></li>
+            <li class="nav-item"><a href="/activity_log" class="nav-link"><span>📋</span> Activity Log</a></li>
+            <li class="nav-item"><a href="/logout" class="nav-link"><span>🚪</span> Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="header">
+            <h2>📊 Stock Movement History</h2>
+            <p>Complete timeline of stock changes for this product</p>
+        </div>
+
+        <div class="product-info">
+            <div class="product-name">{{ product.name }}</div>
+            <div class="product-details">
+                <span>Current Stock: <strong>{{ product.stock }}</strong></span>
+                <span>Cost Price: <strong>₹{{ "%.2f"|format(product.cost_price) }}</strong></span>
+                <span>Selling Price: <strong>₹{{ "%.2f"|format(product.price) }}</strong></span>
+                <span>GST: <strong>{{ product.gst }}%</strong></span>
+            </div>
+        </div>
+
+        <div class="table-container">
+            {% if movements %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Movement Type</th>
+                        <th>Quantity Change</th>
+                        <th>User</th>
+                        <th>Reference</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for movement in movements %}
+                    <tr>
+                        <td>{{ movement.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        <td>
+                            <span class="movement-type type-{{ movement.movement_type.lower() }}">
+                                {{ movement.movement_description }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="quantity-{{ 'positive' if movement.change_qty > 0 else 'negative' }}">
+                                {% if movement.change_qty > 0 %}+{% endif %}{{ movement.change_qty }}
+                            </span>
+                        </td>
+                        <td>{{ movement.username }}</td>
+                        <td>
+                            {% if movement.reference_id %}
+                                {% if movement.movement_type == 'PURCHASE' %}
+                                    Purchase #{{ movement.reference_id }}
+                                {% elif movement.movement_type == 'SALE' %}
+                                    Bill #{{ movement.reference_id }}
+                                {% else %}
+                                    Ref #{{ movement.reference_id }}
+                                {% endif %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <h3>No stock movements found</h3>
+                <p>This product has no recorded stock movements yet</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div style="margin-top: 24px;">
+            <a href="/inventory" class="btn btn-secondary">← Back to Inventory</a>
+        </div>
+    </main>
+</body>
+</html>
